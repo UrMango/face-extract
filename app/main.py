@@ -10,6 +10,9 @@ import boto3
 from io import BytesIO
 from facedetector import FaceDetector
 
+from app.s3_iterate_bucket import DEFAULT_BUCKET_NAME, iterate_files_in_bucket
+from app.image_extractor import iterate_images
+
 
 def getFiles(path):
     files = list()
@@ -87,6 +90,35 @@ def upload_to_s3(image, bucket_name, folder_in_bucket, object_name, aws_access_k
         return False
 
 
+class Statistics:
+    def __init__(self):
+        self.total_images_iterated = 0
+        self.total_faces_found = 0
+
+def is_too_small(face):
+    bbox = face['bounding_box']
+    return bbox['width'] < 10 or bbox['height'] < 10
+
+def crop_face(face):
+    bbox = face['bounding_box']
+    pivotX, pivotY = face['pivot']
+
+    left = pivotX - bbox['width'] / 2.0 * padding
+    top = pivotY - bbox['height'] / 2.0 * padding
+    right = pivotX + bbox['width'] / 2.0 * padding
+    bottom = pivotY + bbox['height'] / 2.0 * padding
+    cropped = img.crop((left, top, right, bottom))
+    return cropped
+
+def build_output_file_name(source_type, file_key, image_index, face_index):
+    # Todo: this function isn't working now, as `file_key` contrains '/''
+    if source_type == "video":
+        return '{}_{:04d}_{}.jpg'.format(
+            file_key, image_index, face_index)
+    else:
+        return '{}_{}.jpg'.format(file_key, face_index)
+
+
 def face_extractor(
     input_bucket_name: str, input_bucket_folder: str,
     output_bucket_name: str, output_bucket_folder: str,
@@ -94,99 +126,39 @@ def face_extractor(
     verbose:bool=False,
     padding=2.5
 ):
+    stats = Statistics()
+
     files_iterator = iterate_files_in_bucket(
         input_bucket_name, input_bucket_folder
         aws_access_key_id=access_key,
         aws_secret_access_key=secret_access_key,
     )
-    for file_index, (file_key, file_image) in enumerate(files_iterator):
-        pass
-\
-    files = getFiles(input)
+    for image_index, (image, source_file_type, file_key) in enumerate(iterate_images(files_iterator)):
+        print(f"    [*] Processing Image {image_index:4d}")
+        stats.total_images_iterated += 1
 
-    inputDir = os.path.abspath(os.path.dirname(input)) if os.path.isfile(
-        input) else os.path.abspath(input)
+        faces = FaceDetector.detect(image)
+        successful_face_index = 1
 
-    images = []
-    for file in files:
-        dir, path, mime, filename = file.values()
-
-        if mime is None:
-            continue
-        if mime.startswith('video'):
-            print('[INFO] extracting frames from video...')
-            video = cv2.VideoCapture(path)
-            while True:
-                success, frame = video.read()
-                if success and isinstance(frame, np.ndarray):
-                    image = {
-                        "file": frame,
-                        "sourcePath": path,
-                        "sourceType": "video",
-                        "filename": filename
-                    }
-                    images.append(image)
-                else:
-                    break
-            video.release()
-            cv2.destroyAllWindows()
-        elif mime.startswith('image'):
-            image = {
-                "file": cv2.imread(path),
-                "sourcePath": path,
-                "sourceType": "image",
-                "filename": filename
-            }
-            images.append(image)
-
-    total = 0
-    for (i, image) in enumerate(images):
-        print("[INFO] processing image {}/{}".format(i + 1, len(images)))
-        faces = FaceDetector.detect(image["file"])
-
-        array = cv2.cvtColor(image['file'], cv2.COLOR_BGR2RGB)
-        img = Image.fromarray(array)
-
-        j = 1
         for face in faces:
-            bbox = face['bounding_box']
-            pivotX, pivotY = face['pivot']
-
-            if bbox['width'] < 10 or bbox['height'] < 10:
+            if is_too_small(face):
                 continue
 
-            left = pivotX - bbox['width'] / 2.0 * padding
-            top = pivotY - bbox['height'] / 2.0 * padding
-            right = pivotX + bbox['width'] / 2.0 * padding
-            bottom = pivotY + bbox['height'] / 2.0 * padding
-            cropped = img.crop((left, top, right, bottom))
-            targetFilename = ''
-            if image["sourceType"] == "video":
-                targetFilename = '{}_{:04d}_{}.jpg'.format(
-                    image["filename"], i, j)
-            else:
-                targetFilename = '{}_{}.jpg'.format(image["filename"], j)
+            cropped = crop_face(face)
+            target_file_name = build_output_file_name(source_file_type, file_key, image_index, successful_face_index)
 
-            upload_to_s3(cropped, bucket_name, folder_in_bucket, targetFilename,
-                         access_key, secret_access_key)
-            # targetDir = image['targetDir']
-            # if not os.path.exists(targetDir):
-            #     os.makedirs(targetDir)
+            upload_to_s3(
+                cropped,
+                output_bucket_name, output_bucket_folder,
+                target_file_name,
+                access_key, secret_access_key,
+            )
 
-            # targetFilename = ''
-            # if image["sourceType"] == "video":
-            #     targetFilename = '{}_{:04d}_{}.jpg'.format(
-            #         image["filename"], i, j)
-            # else:
-            #     targetFilename = '{}_{}.jpg'.format(image["filename"], j)
+            successful_face_index += 1
+            stats.total_faces_found += 1
 
-            # outputPath = os.path.join(targetDir, targetFilename)
-
-            # cropped.save(outputPath)
-            total += 1
-            j += 1
-
-    print("[INFO] found {} face(s)".format(total))
+    print('=' * 50)
+    print(f"Iterated {stats.total_images_iterated} images, and extracted {stats.total_faces_found} faces")
 
 
 def get_parameters():

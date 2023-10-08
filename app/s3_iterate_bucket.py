@@ -43,7 +43,3 @@ def iterate_files_in_bucket(bucket_name: str, prefix: str='', *s3_args, **s3_kwa
         
         # Update the continuation token for the next iteration
         continuation_token = response['NextContinuationToken']
-
-# Replace 'your-bucket-name' with the actual bucket name
-bucket_name = 'your-bucket-name'
-list_files_in_bucket(bucket_name)
