@@ -1,13 +1,6 @@
 import argparse
 import os
-import cv2
 import datetime
-import filetype as ft
-import numpy as np
-from pathlib import Path
-from PIL import Image
-import boto3
-from io import BytesIO
 from facedetector import FaceDetector
 
 from app.s3_iterate_bucket import DEFAULT_BUCKET_NAME, iterate_files_in_bucket
