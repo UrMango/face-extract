@@ -110,9 +110,9 @@ def crop_face(face):
     cropped = img.crop((left, top, right, bottom))
     return cropped
 
-def build_output_file_name(source_type, file_key, image_index, face_index):
+def build_output_file_name(source_file_extension, file_key, image_index, face_index):
     # Todo: this function isn't working now, as `file_key` contrains '/''
-    if source_type == "video":
+    if source_file_extension == "mp4":
         return '{}_{:04d}_{}.jpg'.format(
             file_key, image_index, face_index)
     else:
@@ -133,11 +133,11 @@ def face_extractor(
         aws_access_key_id=access_key,
         aws_secret_access_key=secret_access_key,
     )
-    for image_index, (image, source_file_type, file_key) in enumerate(iterate_images(files_iterator)):
+    for image_index, image_tuple in enumerate(iterate_images(files_iterator)):
         print(f"    [*] Processing Image {image_index:4d}")
         stats.total_images_iterated += 1
 
-        faces = FaceDetector.detect(image)
+        faces = FaceDetector.detect(image_tuple.image)
         successful_face_index = 1
 
         for face in faces:
@@ -145,7 +145,12 @@ def face_extractor(
                 continue
 
             cropped = crop_face(face)
-            target_file_name = build_output_file_name(source_file_type, file_key, image_index, successful_face_index)
+            target_file_name = build_output_file_name(
+                image_tuple.source_file_extension,
+                image_tuple.source_key,
+                image_index,
+                successful_face_index
+            )
 
             upload_to_s3(
                 cropped,
