@@ -12,82 +12,7 @@ from facedetector import FaceDetector
 
 from app.s3_iterate_bucket import DEFAULT_BUCKET_NAME, iterate_files_in_bucket
 from app.image_extractor import iterate_images
-
-
-def getFiles(path):
-    files = list()
-    if os.path.isdir(path):
-        dirFiles = os.listdir(path)
-        for file in dirFiles:
-            filePath = os.path.join(path, file)
-            if os.path.isdir(filePath):
-                files = files + getFiles(filePath)
-            else:
-                kind = ft.guess(filePath)
-                basename = os.path.basename(filePath)
-                files.append({
-                    'dir': os.path.abspath(path),
-                    'path': filePath,
-                    'mime': None if kind == None else kind.mime,
-                    'filename': os.path.splitext(basename)[0]
-                })
-    else:
-        kind = ft.guess(path)
-        basename = os.path.basename(path)
-        files.append({
-            'dir': os.path.abspath(os.path.dirname(path)),
-            'path': path,
-            'mime': None if kind == None else kind.mime,
-            'filename': os.path.splitext(basename)[0]
-        })
-
-    return files
-
-
-def upload_to_s3(image, bucket_name, folder_in_bucket, object_name, aws_access_key_id, aws_secret_access_key, aws_session_token=None):
-    """
-    Uploads a PIL.Image.Image object to an S3 bucket using AWS IAM credentials.
-
-    Args:
-        image (PIL.Image.Image): The PIL.Image.Image object to upload.
-        bucket_name (str): The name of the S3 bucket to upload the image to.
-        object_name (str): The name to give to the uploaded image in the S3 bucket.
-        aws_access_key_id (str): AWS Access Key ID.
-        aws_secret_access_key (str): AWS Secret Access Key.
-        aws_session_token (str, optional): AWS Session Token for temporary credentials.
-
-    Returns:
-        bool: True if the upload was successful, False otherwise.
-    """
-    try:
-        # Create an S3 client with IAM credentials
-        s3 = boto3.client(
-            's3',
-            aws_access_key_id=aws_access_key_id,
-            aws_secret_access_key=aws_secret_access_key,
-            aws_session_token=aws_session_token
-        )
-
-        print(bucket_name, object_name, image.format)
-
-        # Convert the PIL.Image.Image object to bytes
-        image_byte_arr = BytesIO()
-        image.save(image_byte_arr, format='JPEG')
-        image_byte_arr = image_byte_arr.getvalue()
-
-        presentDate = datetime.datetime.now()
-        unix_timestamp = datetime.datetime.timestamp(presentDate)*1000
-
-        # Upload the image bytes to the specified bucket with the given object name
-        s3.upload_fileobj(BytesIO(image_byte_arr),
-                          bucket_name, folder_in_bucket + str(int(unix_timestamp)) + ".jpg")
-
-        print(
-            f"Image '{object_name}' uploaded to '{bucket_name}' successfully.")
-        return True
-    except Exception as e:
-        print(f"Error uploading image: {e}")
-        return False
+from app.s3_upload import upload_to_s3
 
 
 class Statistics:
@@ -126,7 +51,7 @@ def face_extractor(
     stats = Statistics()
 
     files_iterator = iterate_files_in_bucket(
-        input_bucket_name, input_bucket_folder
+        input_bucket_name, input_bucket_folder,
         aws_access_key_id=access_key,
         aws_secret_access_key=secret_access_key,
     )
