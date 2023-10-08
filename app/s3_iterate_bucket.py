@@ -10,6 +10,8 @@ DEFAULT_BUCKET_NAME = 'dh83ks92md-is-raw-footage'
 def iterate_files_in_response(bucket_name: str, response_contents):
     for obj in response_contents:
         key = obj['Key']
+        if key.endswith('/'):
+            continue
 
         # Download the file
         file_obj = s3.get_object(Bucket=bucket_name, Key=obj['Key'])
