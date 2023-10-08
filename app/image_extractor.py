@@ -20,7 +20,7 @@ ImageType = namedtuple("ImageType", [
 ])
 
 
-def iterate_images(files_iterator: Iterable[Tuple[FileKey, FileContent]]):
+def iterate_images(files_iterator: Iterable[Tuple[FileKey, FileContent]], verbose: bool = False):
     for file_index, (file_key, file_content) in enumerate(files_iterator):
         print(f"[*] Processing Image {file_index:4d}")
 
@@ -50,6 +50,9 @@ def iterate_images(files_iterator: Iterable[Tuple[FileKey, FileContent]]):
                     image = Image.fromarray(frame)
                     yield ImageType(frame, file_extension, file_kind, file_key, file_index, frame_index)
                     frame_index += 1
+
+                if verbose:
+                    print(f"        [v] Extracted {frame_index} images from video (s3 key: {file_key})")
 
                 video_capture.release()
                 cv2.destroyAllWindows()

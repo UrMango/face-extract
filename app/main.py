@@ -52,11 +52,13 @@ def face_extractor(
         aws_access_key_id=access_key,
         aws_secret_access_key=secret_access_key,
     )
-    for image_index, image_tuple in enumerate(iterate_images(files_iterator)):
-        print(f"    [*] Processing Image {image_index:4d}")
+    for image_index, image_tuple in enumerate(iterate_images(files_iterator, verbose)):
+        print(f"    [*] Processing Image {image_index:4d} (s3 key: {image_tuple.source_key})")
         stats.total_images_iterated += 1
 
         faces = FaceDetector.detect(image_tuple.image)
+        if verbose:
+            print(f"        [*] Found{len(faces)} potential faces in image #{image_index}")
 
         successful_face_index = 1
         for face in faces:
@@ -105,6 +107,9 @@ def get_parameters():
     parser.add_argument(
         "-v", "--verbose", action="store_true", help="Verbose logging")
     args = parser.parse_args()
+
+    if not args.output_bucket_folder.endswith('/'):
+        args.output_bucket_folder = f"{args.output_bucket_folder}/"
 
     if args.verbose:
         print(f"[*] Initializing with the following arguments: {args}")
