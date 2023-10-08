@@ -9,6 +9,9 @@ COPY ./app /app/app
 COPY ./requirements.txt /app
 
 # Install any needed packages specified in requirements.txt
+RUN apt-get update && \
+    apt-get install -y --force-yes python3-opencv
+
 RUN pip install -r requirements.txt
 
 # Make port 80 available to the world outside this container
