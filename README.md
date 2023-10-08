@@ -2,6 +2,12 @@
 
 This Python script is designed to extract faces from images or video frames and upload them to an AWS S3 bucket. It uses OpenCV for image and video processing, the facedetector library for face detection, and the boto3 library for AWS S3 interaction.
 
+## Todo
+- [ ] Receive images from the bucket
+- [ ] Make sure the same image from the bucket processed twice
+- [ ] Run under docker & docker-compose
+- [ ] Add execution configuration
+
 ## Prerequisites
 
 Before using this script, you need to have the following prerequisites in place:
