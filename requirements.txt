@@ -1,0 +1,6 @@
+opencv-python
+facedetector-py
+filetype
+numpy
+pytest
+boto3
