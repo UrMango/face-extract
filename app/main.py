@@ -174,6 +174,12 @@ def face_extractor(input, bucket_name, folder_in_bucket, access_key, secret_acce
     print("[INFO] found {} face(s)".format(total))
 
 
-# Example Usage
-face_extractor("input_directory_or_file", "your-bucket-name",
-               "folder-in-bucket", "your-aws-access-key", "your-aws-secret-key")
+def main():
+    # Todo: load configuration from environment
+    input_folder = "input_directory_or_file"
+    bucket_name = "your-bucket-name"
+    bucket_folder = "folder-in-bucket"
+    aws_access_key = "your-aws-access-key"
+    aws_secret_key = "your-aws-secret-key"
+
+    face_extractor(input_folder, bucket_name, bucket_folder, aws_access_key, aws_secret_key)
