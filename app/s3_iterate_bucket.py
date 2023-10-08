@@ -1,12 +1,9 @@
 from typing import Iterable, Tuple
 
 import boto3
-import cv2
-import numpy as np
-from io import BytesIO
 
 FileKey = str
-FileContent = Image
+FileContent = bytes
 
 DEFAULT_BUCKET_NAME = 'dh83ks92md-is-raw-footage'
 
@@ -20,19 +17,7 @@ def iterate_files_in_response(bucket_name: str, response_contents):
         # Read the file's content as bytes
         file_content_bytes = file_obj['Body'].read()
 
-        # Convert bytes to a numpy array
-        image_np_array = np.frombuffer(file_content_bytes, np.uint8)
-
-        # Decode the image using OpenCV (cv2)
-        image = cv2.imdecode(image_np_array, cv2.IMREAD_COLOR)
-
-        # Now you can work with the image using OpenCV functions
-        # For example, you can display the image
-        cv2.imshow("Image", image)
-        cv2.waitKey(0)
-        cv2.destroyAllWindows()
-
-        yield key, image
+        yield key, file_content_bytes
 
 
 def iterate_files_in_bucket(bucket_name: str, prefix: str='', *s3_args, **s3_kwargs) -> Iterable[Tuple[FileKey, FileContent]]:
