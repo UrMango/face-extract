@@ -7,7 +7,7 @@ This Python script is designed to extract faces from images or video frames and 
 - [ ] Receive images from the bucket
 - [ ] Make sure the same image from the bucket processed twice
 - [x] Run under docker & docker-compose
-- [ ] Add execution configuration
+- [x] Add execution configuration
 - [ ] Run infinitley and wait for new files
 
 ## Prerequisites
@@ -35,6 +35,15 @@ pip install -r requirements.txt
 2. Navigate to the directory where the script is located.
 
 3. Edit the `face_extractor` function call at the end of the script to specify your input source and AWS S3 bucket details:
+
+```bash
+# first, build the docker
+docker build . --tag wehelpisrael-face-extractor
+# then, execute:
+export aws_access_key_id=...
+export aws_secret_access_key=...
+docker run wehelpisrael-face-extractor <input folder> <output bucket name> <output bucket folder: defaults to `date`>
+```
 
 ```python
 face_extractor("input_directory_or_file", "your-bucket-name", "folder-in-bucket", "your-aws-access-key", "your-aws-secret-key")

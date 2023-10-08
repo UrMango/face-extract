@@ -1,3 +1,4 @@
+import argparse
 import os
 import cv2
 import datetime
@@ -86,7 +87,7 @@ def upload_to_s3(image, bucket_name, folder_in_bucket, object_name, aws_access_k
         return False
 
 
-def face_extractor(input, bucket_name, folder_in_bucket, access_key, secret_access_key, padding=2.5):
+def face_extractor(input, bucket_name, folder_in_bucket, access_key, secret_access_key, verbose:bool=False, padding=2.5):
     files = getFiles(input)
 
     inputDir = os.path.abspath(os.path.dirname(input)) if os.path.isfile(
@@ -174,12 +175,41 @@ def face_extractor(input, bucket_name, folder_in_bucket, access_key, secret_acce
     print("[INFO] found {} face(s)".format(total))
 
 
-def main():
-    # Todo: load configuration from environment
-    input_folder = "input_directory_or_file"
-    bucket_name = "your-bucket-name"
-    bucket_folder = "folder-in-bucket"
-    aws_access_key = "your-aws-access-key"
-    aws_secret_key = "your-aws-secret-key"
+def get_parameters():
+    #
+    # arguments from CLI
+    #
+    parser = argparse.ArgumentParser(
+        description="Extract faces (from s3 bucket).")
+    parser.add_argument("input_folder",
+                        help="The (local) folder (or file) from which to extract faces")
+    parser.add_argument("output_bucket_name",
+                        help="The bucket name in which to store the results")
+    parser.add_argument("output_bucket_folder", nargs='?', default=f"extracted_faces__{datetime.datetime.now().strftime('%Y/%m/%d_%H.%M')}",
+                        help="The bucket folder in which to store the results")
+    parser.add_argument(
+        "-v", "--verbose", action="store_true", help="Verbose logging")
+    args = parser.parse_args()
 
-    face_extractor(input_folder, bucket_name, bucket_folder, aws_access_key, aws_secret_key)
+    if args.verbose:
+        print(f"[*] Initializing with the following arguments: {args}")
+
+    #
+    # arguments from environment variables
+    #
+    aws_access_key = os.getenv("aws_access_key_id")
+    if aws_access_key is None:
+        raise ValueError("AWS access key missing! please set the environment variable `aws_access_key_id`")
+
+    aws_secret_key = os.getenv("aws_secret_access_key")
+    if aws_secret_key is None:
+        raise ValueError("AWS access key missing! please set the environment variable `aws_secret_access_key`")
+
+    return args, aws_access_key, aws_secret_key
+
+def main():
+    args, aws_access_key, aws_secret_key = get_parameters()
+    face_extractor(args.input_folder, args.output_bucket_name, args.output_bucket_folder, aws_access_key, aws_secret_key, args.verbose)
+
+if __name__ == '__main__':
+    main()
