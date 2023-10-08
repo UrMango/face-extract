@@ -87,7 +87,21 @@ def upload_to_s3(image, bucket_name, folder_in_bucket, object_name, aws_access_k
         return False
 
 
-def face_extractor(input, bucket_name, folder_in_bucket, access_key, secret_access_key, verbose:bool=False, padding=2.5):
+def face_extractor(
+    input_bucket_name: str, input_bucket_folder: str,
+    output_bucket_name: str, output_bucket_folder: str,
+    access_key, secret_access_key,
+    verbose:bool=False,
+    padding=2.5
+):
+    files_iterator = iterate_files_in_bucket(
+        input_bucket_name, input_bucket_folder
+        aws_access_key_id=access_key,
+        aws_secret_access_key=secret_access_key,
+    )
+    for file_index, (file_key, file_image) in enumerate(files_iterator):
+        pass
+\
     files = getFiles(input)
 
     inputDir = os.path.abspath(os.path.dirname(input)) if os.path.isfile(
@@ -181,11 +195,16 @@ def get_parameters():
     #
     parser = argparse.ArgumentParser(
         description="Extract faces (from s3 bucket).")
-    parser.add_argument("input_folder",
-                        help="The (local) folder (or file) from which to extract faces")
-    parser.add_argument("output_bucket_name",
+    parser.add_argument("--input-bucket-name",
+                        default=DEFAULT_BUCKET_NAME,
+                        help="The bucket name from which to extract faces")
+    parser.add_argument("--input-bucket-folder",
+                        default='',
+                        help="The bucket folder from which to extract faces. Default=empty string, meaning all folders")
+    parser.add_argument("--output-bucket-name",
                         help="The bucket name in which to store the results")
-    parser.add_argument("output_bucket_folder", nargs='?', default=f"extracted_faces__{datetime.datetime.now().strftime('%Y/%m/%d_%H.%M')}",
+    parser.add_argument("--output-bucket-folder",
+                        default=f"extracted_faces__{datetime.datetime.now().strftime('%Y/%m/%d_%H.%M')}",
                         help="The bucket folder in which to store the results")
     parser.add_argument(
         "-v", "--verbose", action="store_true", help="Verbose logging")
@@ -209,7 +228,12 @@ def get_parameters():
 
 def main():
     args, aws_access_key, aws_secret_key = get_parameters()
-    face_extractor(args.input_folder, args.output_bucket_name, args.output_bucket_folder, aws_access_key, aws_secret_key, args.verbose)
+    face_extractor(
+        args.input_bucket_name, args.input_bucket_folder,
+        args.output_bucket_name, args.output_bucket_folder,
+        aws_access_key, aws_secret_key,
+        args.verbose
+    )
 
 if __name__ == '__main__':
     main()
