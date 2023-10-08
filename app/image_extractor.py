@@ -4,6 +4,8 @@ from collections import namedtuple
 import cv2
 import numpy as np
 import filetype as ft
+from PIL import Image
+import tempfile
 
 FileKey = str
 FileContent = bytes
@@ -21,13 +23,13 @@ def iterate_images(files_iterator: Iterable[Tuple[FileKey, FileContent]]):
     for file_index, (file_key, file_content) in enumerate(files_iterator):
         print(f"[*] Processing Image {file_index:4d}")
 
-        file_extension = obj['Key'].split('.')[-1].lower()
-
+        file_extension = file_key.split('.')[-1].lower()
         file_kind = ft.guess(file_content)
 
         if file_extension == "jpg":
             image_np_array = np.frombuffer(file_content, np.uint8)
-            image = cv2.imdecode(image_np_array, cv2.IMREAD_COLOR)
+            image_array = cv2.imdecode(image_np_array, cv2.IMREAD_COLOR)
+            image = Image.fromarray(image_array)
             yield ImageType(image, file_extension, file_kind, file_key, file_index, 0)
 
         elif file_extension == "mp4":
@@ -44,6 +46,7 @@ def iterate_images(files_iterator: Iterable[Tuple[FileKey, FileContent]]):
                     if not ret:
                         break
 
+                    image = Image.fromarray(frame)
                     yield ImageType(frame, file_extension, file_kind, file_key, file_index, frame_index)
                     frame_index += 1
 

@@ -7,7 +7,7 @@ FileContent = bytes
 
 DEFAULT_BUCKET_NAME = 'dh83ks92md-is-raw-footage'
 
-def iterate_files_in_response(bucket_name: str, response_contents):
+def iterate_files_in_response(bucket_name: str, response_contents) -> Iterable[Tuple[FileKey, FileContent]]:
     for obj in response_contents:
         key = obj['Key']
         if key.endswith('/'):
@@ -22,7 +22,7 @@ def iterate_files_in_response(bucket_name: str, response_contents):
         yield key, file_content_bytes
 
 
-def iterate_files_in_bucket(bucket_name: str, prefix: str='', *s3_args, **s3_kwargs) -> Iterable[Tuple[FileKey, FileContent]]:
+def iterate_files_in_bucket(bucket_name: str, prefix: str='', verbose:bool=False, *s3_args, **s3_kwargs) -> Iterable[Tuple[FileKey, FileContent]]:
     s3 = boto3.client('s3', *s3_args, **s3_kwargs)
 
     # Initialize a continuation token for pagination
@@ -34,13 +34,23 @@ def iterate_files_in_bucket(bucket_name: str, prefix: str='', *s3_args, **s3_kwa
         else:
             continuation_params = {}
 
+        if verbose:
+            print(f"[v] sending request for s3 data. continuation_token={continuation_token}")
+
         response = s3.list_objects_v2(Bucket=bucket_name, Prefix=prefix, **continuation_params)
         
         if 'Contents' in response:
             yield from iterate_files_in_response(bucket_name, response['Contents'])
+        else:
+            if verbose:
+                print(f"    [v] got no Contents in response")
+
 
         # Check if there are more objects to retrieve
         if not response['IsTruncated']:
+            if verbose:
+                print(f"    [v] response is not truncated - ending while loop")
+
             break
         
         # Update the continuation token for the next iteration

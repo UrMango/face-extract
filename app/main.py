@@ -17,7 +17,7 @@ def is_too_small(face):
     bbox = face['bounding_box']
     return bbox['width'] < 10 or bbox['height'] < 10
 
-def crop_face(face):
+def crop_face(face, image, padding: float=2.5):
     bbox = face['bounding_box']
     pivotX, pivotY = face['pivot']
 
@@ -25,26 +25,27 @@ def crop_face(face):
     top = pivotY - bbox['height'] / 2.0 * padding
     right = pivotX + bbox['width'] / 2.0 * padding
     bottom = pivotY + bbox['height'] / 2.0 * padding
-    cropped = img.crop((left, top, right, bottom))
+    cropped = image.crop((left, top, right, bottom))
     return cropped
 
 def build_output_file_name(source_file_extension, file_key, image_index, face_index):
     formatted_key = file_key.replace('/', '__')
 
-    return f"{formatted_key}_from_{source_file_extension}_{image_index:04d}_{face_index}.jpg"
+    return f"{formatted_key}___{image_index:04d}_{face_index}.jpg"
 
 
 def face_extractor(
     input_bucket_name: str, input_bucket_folder: str,
     output_bucket_name: str, output_bucket_folder: str,
     access_key, secret_access_key,
-    verbose:bool=False,
-    padding=2.5
+    verbose: bool=False,
+    padding: float=2.5,
 ):
     stats = Statistics()
 
     files_iterator = iterate_files_in_bucket(
         input_bucket_name, input_bucket_folder,
+        verbose,
         aws_access_key_id=access_key,
         aws_secret_access_key=secret_access_key,
     )
@@ -53,13 +54,13 @@ def face_extractor(
         stats.total_images_iterated += 1
 
         faces = FaceDetector.detect(image_tuple.image)
-        successful_face_index = 1
 
+        successful_face_index = 1
         for face in faces:
             if is_too_small(face):
                 continue
 
-            cropped = crop_face(face)
+            cropped = crop_face(face, image_tuple.image, padding)
             target_file_name = build_output_file_name(
                 image_tuple.source_file_extension,
                 image_tuple.source_key,
