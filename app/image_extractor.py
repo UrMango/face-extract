@@ -19,6 +19,7 @@ ImageType = namedtuple("ImageType", [
     "image_index_in_file",
 ])
 
+
 def iterate_images(files_iterator: Iterable[Tuple[FileKey, FileContent]]):
     for file_index, (file_key, file_content) in enumerate(files_iterator):
         print(f"[*] Processing Image {file_index:4d}")
@@ -34,7 +35,7 @@ def iterate_images(files_iterator: Iterable[Tuple[FileKey, FileContent]]):
 
         elif file_extension == "mp4":
             with tempfile.NamedTemporaryFile(suffix=".mp4") as temp_file:
-                temp_file.write(file_content_bytes)
+                temp_file.write(file_content)
                 temp_file.seek(0)
 
                 # Open the video using cv2.VideoCapture

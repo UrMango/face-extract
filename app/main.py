@@ -13,11 +13,13 @@ class Statistics:
         self.total_images_iterated = 0
         self.total_faces_found = 0
 
+
 def is_too_small(face):
     bbox = face['bounding_box']
     return bbox['width'] < 10 or bbox['height'] < 10
 
-def crop_face(face, image, padding: float=2.5):
+
+def crop_face(face, image, padding: float = 2.5):
     bbox = face['bounding_box']
     pivotX, pivotY = face['pivot']
 
@@ -27,6 +29,7 @@ def crop_face(face, image, padding: float=2.5):
     bottom = pivotY + bbox['height'] / 2.0 * padding
     cropped = image.crop((left, top, right, bottom))
     return cropped
+
 
 def build_output_file_name(source_file_extension, file_key, image_index, face_index):
     formatted_key = file_key.replace('/', '__')
@@ -38,8 +41,8 @@ def face_extractor(
     input_bucket_name: str, input_bucket_folder: str,
     output_bucket_name: str, output_bucket_folder: str,
     access_key, secret_access_key,
-    verbose: bool=False,
-    padding: float=2.5,
+    verbose: bool = False,
+    padding: float = 2.5,
 ):
     stats = Statistics()
 
@@ -119,6 +122,7 @@ def get_parameters():
 
     return args, aws_access_key, aws_secret_key
 
+
 def main():
     args, aws_access_key, aws_secret_key = get_parameters()
     face_extractor(
@@ -127,6 +131,7 @@ def main():
         aws_access_key, aws_secret_key,
         args.verbose
     )
+
 
 if __name__ == '__main__':
     main()
