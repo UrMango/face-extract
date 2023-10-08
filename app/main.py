@@ -111,12 +111,9 @@ def crop_face(face):
     return cropped
 
 def build_output_file_name(source_file_extension, file_key, image_index, face_index):
-    # Todo: this function isn't working now, as `file_key` contrains '/''
-    if source_file_extension == "mp4":
-        return '{}_{:04d}_{}.jpg'.format(
-            file_key, image_index, face_index)
-    else:
-        return '{}_{}.jpg'.format(file_key, face_index)
+    formatted_key = file_key.replace('/', '__')
+
+    return f"{formatted_key}_from_{source_file_extension}_{image_index:04d}_{face_index}.jpg"
 
 
 def face_extractor(

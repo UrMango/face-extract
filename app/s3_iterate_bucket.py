@@ -14,7 +14,7 @@ def iterate_files_in_response(bucket_name: str, response_contents):
             continue
 
         # Download the file
-        file_obj = s3.get_object(Bucket=bucket_name, Key=obj['Key'])
+        file_obj = s3.get_object(Bucket=bucket_name, Key=key)
 
         # Read the file's content as bytes
         file_content_bytes = file_obj['Body'].read()
