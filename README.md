@@ -7,6 +7,7 @@ This Python script is designed to extract faces from images or video frames and 
 - [ ] Make sure the same image from the bucket processed twice
 - [ ] Run under docker & docker-compose
 - [ ] Add execution configuration
+- [ ] Run infinitley and wait for new files
 
 ## Prerequisites
 
