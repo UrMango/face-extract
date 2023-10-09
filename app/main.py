@@ -2,10 +2,13 @@ import argparse
 import os
 import datetime
 from facedetector import FaceDetector
-
 from app.s3_iterate_bucket import DEFAULT_BUCKET_NAME, iterate_files_in_bucket
 from app.image_extractor import iterate_images
 from app.s3_upload import upload_to_s3
+import dotenv
+from PIL import Image
+
+dotenv.load_dotenv()
 
 
 class Statistics:
@@ -53,19 +56,21 @@ def face_extractor(
         aws_secret_access_key=secret_access_key,
     )
     for image_index, image_tuple in enumerate(iterate_images(files_iterator, verbose)):
-        print(f"    [*] Processing Image {image_index:4d} (s3 key: {image_tuple.source_key})")
+        print(
+            f"    [*] Processing Image {image_index:4d} (s3 key: {image_tuple.source_key})")
         stats.total_images_iterated += 1
 
         faces = FaceDetector.detect(image_tuple.image)
         if verbose:
-            print(f"        [*] Found{len(faces)} potential faces in image #{image_index}")
+            print(
+                f"        [*] Found{len(faces)} potential faces in image #{image_index}")
 
         successful_face_index = 1
         for face in faces:
             if is_too_small(face):
                 continue
-
-            cropped = crop_face(face, image_tuple.image, padding)
+            image = Image.fromarray(image_tuple.image)
+            cropped = crop_face(face, image, padding)
             target_file_name = build_output_file_name(
                 image_tuple.source_file_extension,
                 image_tuple.source_key,
@@ -84,7 +89,8 @@ def face_extractor(
             stats.total_faces_found += 1
 
     print('=' * 50)
-    print(f"Iterated {stats.total_images_iterated} images, and extracted {stats.total_faces_found} faces")
+    print(
+        f"Iterated {stats.total_images_iterated} images, and extracted {stats.total_faces_found} faces")
 
 
 def get_parameters():
@@ -97,12 +103,13 @@ def get_parameters():
                         default=DEFAULT_BUCKET_NAME,
                         help="The bucket name from which to extract faces")
     parser.add_argument("--input-bucket-folder",
-                        default='',
+                        default='processing',
                         help="The bucket folder from which to extract faces. Default=empty string, meaning all folders")
     parser.add_argument("--output-bucket-name",
+                        default=DEFAULT_BUCKET_NAME,
                         help="The bucket name in which to store the results")
     parser.add_argument("--output-bucket-folder",
-                        default=f"extracted_faces__{datetime.datetime.now().strftime('%Y/%m/%d_%H.%M')}",
+                        default=f"faces-extracted/test/",
                         help="The bucket folder in which to store the results")
     parser.add_argument(
         "-v", "--verbose", action="store_true", help="Verbose logging")
@@ -119,11 +126,13 @@ def get_parameters():
     #
     aws_access_key = os.getenv("aws_access_key_id")
     if aws_access_key is None:
-        raise ValueError("AWS access key missing! please set the environment variable `aws_access_key_id`")
+        raise ValueError(
+            "AWS access key missing! please set the environment variable `aws_access_key_id`")
 
     aws_secret_key = os.getenv("aws_secret_access_key")
     if aws_secret_key is None:
-        raise ValueError("AWS access key missing! please set the environment variable `aws_secret_access_key`")
+        raise ValueError(
+            "AWS access key missing! please set the environment variable `aws_secret_access_key`")
 
     return args, aws_access_key, aws_secret_key
 

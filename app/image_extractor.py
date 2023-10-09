@@ -30,7 +30,7 @@ def iterate_images(files_iterator: Iterable[Tuple[FileKey, FileContent]], verbos
         if file_extension == "jpg":
             image_np_array = np.frombuffer(file_content, np.uint8)
             image_array = cv2.imdecode(image_np_array, cv2.IMREAD_COLOR)
-            image = Image.fromarray(image_array)
+            image = image_array
             yield ImageType(image, file_extension, file_kind, file_key, file_index, 0)
 
         elif file_extension == "mp4":
