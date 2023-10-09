@@ -1,5 +1,10 @@
 # Face Extractor for Maf'at Project
 
+```diff
+- 🛑 Before starting to work, check the current To Do, the develop branch, and the open branches. There's probably someone who already started implemented what you're planning. 🛑
+- 🛑 New branches should always originate on develop / inner branches. No main-based branches please. 🛑
+```
+
 This Python script is designed to extract faces from images or video frames and upload them to an AWS S3 bucket. It uses OpenCV for image and video processing, the facedetector library for face detection, and the boto3 library for AWS S3 interaction.
 
 ## Todo
