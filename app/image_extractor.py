@@ -47,7 +47,7 @@ def iterate_images(files_iterator: Iterable[Tuple[FileKey, FileContent]], verbos
                     if not ret:
                         break
 
-                    image = Image.fromarray(frame)
+                    image = frame
                     yield ImageType(frame, file_extension, file_kind, file_key, file_index, frame_index)
                     frame_index += 1
 
