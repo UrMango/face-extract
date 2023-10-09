@@ -1,14 +1,21 @@
 # Face Extractor for Maf'at Project
 
+```diff
+- 🛑 Before starting to work, check the current To Do, the develop branch, and the open branches. There's probably someone who already started implemented what you're planning. 🛑
+- 🛑 New branches should always originate on develop / inner branches. No main-based branches please. 🛑
+```
+
 This Python script is designed to extract faces from images or video frames and upload them to an AWS S3 bucket. It uses OpenCV for image and video processing, the facedetector library for face detection, and the boto3 library for AWS S3 interaction.
 
 ## Todo
 
-- [ ] Receive images from the bucket
+- [x] Receive images from the bucket
 - [ ] Make sure the same image from the bucket processed twice
-- [ ] Run under docker & docker-compose
-- [ ] Add execution configuration
+- [x] Run under docker & docker-compose
+- [x] Add execution configuration
 - [ ] Run infinitley and wait for new files
+	- It may be that S3 triggers can be processed with sqs queues.
+   	<!-- - If that is the case, we can either use lambda, or `while true: process everything all over again` (or store some kind of cache to tell which files have already been processed, e.g. an in-memory list of processed file names) --!>
 
 ## Prerequisites
 
@@ -35,6 +42,15 @@ pip install -r requirements.txt
 2. Navigate to the directory where the script is located.
 
 3. Edit the `face_extractor` function call at the end of the script to specify your input source and AWS S3 bucket details:
+
+```bash
+# first, build the docker
+docker build . --tag wehelpisrael-face-extractor
+# then, execute:
+export aws_access_key_id=...
+export aws_secret_access_key=...
+docker run wehelpisrael-face-extractor <input folder> <output bucket name> <output bucket folder: defaults to `date`>
+```
 
 ```python
 face_extractor("input_directory_or_file", "your-bucket-name", "folder-in-bucket", "your-aws-access-key", "your-aws-secret-key")
