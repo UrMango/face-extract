@@ -14,8 +14,8 @@ This Python script is designed to extract faces from images or video frames and 
 - [x] Run under docker & docker-compose
 - [x] Add execution configuration
 - [ ] Run infinitley and wait for new files
-	- It may be that S3 triggers can be processed in lambda. I don't really know about that.
-	- If that is the case, we can either use lambda, or `while true: process everything all over again` (or store some kind of cache to tell which files have already been processed, e.g. an in-memory list of processed file names)
+	- It may be that S3 triggers can be processed with sqs queues.
+   	<!-- - If that is the case, we can either use lambda, or `while true: process everything all over again` (or store some kind of cache to tell which files have already been processed, e.g. an in-memory list of processed file names) --!>
 
 ## Prerequisites
 
