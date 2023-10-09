@@ -4,3 +4,4 @@ filetype
 numpy
 pytest
 boto3
+python-dotenv
