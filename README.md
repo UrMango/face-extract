@@ -1,4 +1,4 @@
-# Face Extractor for Maf'at Project
+# Face Extractor for Maf'at Project (Archived due to lack of need)
 
 ```diff
 - 🛑 Before starting to work, check the current To Do, the develop branch, and the open branches. There's probably someone who already started implemented what you're planning. 🛑
